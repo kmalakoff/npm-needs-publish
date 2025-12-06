@@ -9,6 +9,7 @@ export {
 } from './dependency.ts';
 export {
   comparePackageFiles,
+  extractPackageJson,
   getFileChangeSummary,
   hashBuffer,
   isOnlyPackageJsonChange,

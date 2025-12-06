@@ -58,7 +58,7 @@ function worker(options: NeedsPublishOptions, callback: NeedsPublishCallback): u
     const execFileAsync = promisify(execFile);
 
     // Dynamic import for comparators (they use modern features)
-    const { comparePackageFiles, comparePackageJson, hashBuffer } = await import('./comparators/index.ts');
+    const { comparePackageFiles, comparePackageJson, extractPackageJson, hashBuffer } = await import('./comparators/index.ts');
 
     // Get registry URL for scoped packages
     let registry: string | undefined = options.registry;
@@ -193,7 +193,12 @@ function worker(options: NeedsPublishOptions, callback: NeedsPublishCallback): u
 
     // Step 6: If only package.json differs, do semantic comparison
     if (fileComparison.packageJsonOnly && !options.packageJsonOnly) {
-      const pkgJsonComparison = comparePackageJson(localPkg, registryPkg, {
+      // Extract package.json from both tarballs for accurate comparison
+      // (packument metadata is missing fields like 'files')
+      const localTarballPkg = (await extractPackageJson(localTarball)) as PackageJson;
+      const registryTarballPkg = (await extractPackageJson(registryTarball)) as PackageJson;
+
+      const pkgJsonComparison = comparePackageJson(localTarballPkg, registryTarballPkg, {
         includeOptionalDeps: options.includeOptionalDeps,
         additionalSignificantFields: options.additionalSignificantFields,
         ignoreFields: options.ignoreFields,

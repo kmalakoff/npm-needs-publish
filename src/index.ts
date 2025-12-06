@@ -20,6 +20,7 @@
 
 // Comparators
 export { compareDependencies } from './comparators/dependency.ts';
+export { extractPackageJson } from './comparators/file-content.ts';
 export { comparePackageJson } from './comparators/package-json.ts';
 export { compareVersionSpecifiers, comparisonToSemanticChange, parseVersionSpecifier, type SemanticChangeOptions } from './comparators/version-specifier.ts';
 // Main API

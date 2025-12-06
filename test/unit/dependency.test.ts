@@ -1,6 +1,3 @@
-// remove NODE_OPTIONS from ts-dev-stack
-delete process.env.NODE_OPTIONS;
-
 import assert from 'assert';
 import { compareDependencies, type PackageJson } from 'npm-needs-publish';
 

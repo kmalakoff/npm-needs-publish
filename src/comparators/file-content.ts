@@ -186,3 +186,22 @@ export function isOnlyPackageJsonChange(changes: FileChange[]): boolean {
   }
   return true;
 }
+
+/**
+ * Extract package.json from a tarball
+ *
+ * @param tarball - Tarball as Buffer (gzipped)
+ * @returns Parsed package.json object
+ */
+export async function extractPackageJson(tarball: Buffer): Promise<unknown> {
+  const files = await extractTarball(tarball);
+
+  // Look for package.json in the tarball
+  const pkgJsonPath = Object.keys(files).find((p) => p === 'package/package.json' || p.indexOf('/package.json') === p.length - 13);
+
+  if (!pkgJsonPath || !files[pkgJsonPath]) {
+    throw new Error('package.json not found in tarball');
+  }
+
+  return JSON.parse(files[pkgJsonPath].toString('utf8'));
+}

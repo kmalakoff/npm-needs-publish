@@ -1,6 +1,3 @@
-// remove NODE_OPTIONS from ts-dev-stack
-delete process.env.NODE_OPTIONS;
-
 import path from 'path';
 import url from 'url';
 

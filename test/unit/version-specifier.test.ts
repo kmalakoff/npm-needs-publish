@@ -1,6 +1,3 @@
-// remove NODE_OPTIONS from ts-dev-stack
-delete process.env.NODE_OPTIONS;
-
 import assert from 'assert';
 import { compareVersionSpecifiers, comparisonToSemanticChange, parseVersionSpecifier } from 'npm-needs-publish';
 
