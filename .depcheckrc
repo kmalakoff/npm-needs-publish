@@ -1,0 +1,1 @@
+ignores: ["node-version-use", "ts-dev-stack", "npm-needs-publish", "@npmcli/arborist", "npm-package-arg", "pacote", "semver", "tar", "@types/pacote", "@types/semver", "@types/tar"]
