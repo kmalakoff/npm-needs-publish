@@ -1,0 +1,3 @@
+{
+  "reject": ["@npmcli/arborist", "pacote"]
+}

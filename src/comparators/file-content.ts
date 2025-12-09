@@ -9,9 +9,12 @@
 
 import crypto from 'crypto';
 import Module from 'module';
-import { Readable } from 'stream';
-import { pipeline } from 'stream/promises';
+import { pipeline as pipelineCb, Readable } from 'stream';
+import { promisify } from 'util';
 import zlib from 'zlib';
+
+const pipeline = promisify(pipelineCb);
+
 import type { FileChange, FileComparison } from '../types.ts';
 
 const _require = typeof require === 'undefined' ? Module.createRequire(import.meta.url) : require;

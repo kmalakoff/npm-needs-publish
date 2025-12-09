@@ -13,28 +13,17 @@
 import fs from 'fs';
 import Module from 'module';
 import path from 'path';
-import { wrapWorker } from 'tsds-lib';
-import url from 'url';
 import { stringStartsWith } from './compat.ts';
 import type { ChangeDetail, NeedsPublishOptions, NeedsPublishResult, PackageJson } from './types.ts';
 
-// Version check for worker pattern - use worker for Node < 14
-const major = +process.versions.node.split('.')[0];
-const version = major > 14 ? 'local' : 'stable';
 const _require = typeof require === 'undefined' ? Module.createRequire(import.meta.url) : require;
-const __dirname = path.dirname(typeof __filename === 'undefined' ? url.fileURLToPath(import.meta.url) : __filename);
-const dist = path.join(__dirname, '..');
-const workerWrapper = wrapWorker(path.join(dist, 'cjs', 'needs-publish.js'));
 
 /**
  * Callback type for needsPublish
  */
 export type NeedsPublishCallback = (error: Error | null, result?: NeedsPublishResult) => void;
 
-/**
- * Worker function that runs on Node 14+
- */
-function worker(options: NeedsPublishOptions, callback: NeedsPublishCallback): undefined {
+function needsPublishImpl(options: NeedsPublishOptions, callback: NeedsPublishCallback): undefined {
   const cwd = options.cwd || process.cwd();
 
   // Load local package.json
@@ -262,11 +251,10 @@ function worker(options: NeedsPublishOptions, callback: NeedsPublishCallback): u
 }
 
 /**
- * Callback-based needsPublish - works on Node 0.8+
- * Uses worker for older Node versions, runs locally on Node 14+
+ * Callback-based needsPublish
  */
 export function needsPublishCb(options: NeedsPublishOptions, callback: NeedsPublishCallback): void {
-  version !== 'local' ? workerWrapper(version, options, callback) : worker(options, callback);
+  needsPublishImpl(options, callback);
 }
 
 /**

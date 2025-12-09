@@ -55,34 +55,33 @@
     "version": "tsds version"
   },
   "dependencies": {
-    "@npmcli/arborist": "*",
-    "fs-copy-compat": "*",
-    "fs-remove-compat": "*",
-    "mkdirp-classic": "*",
-    "npm-package-arg": "*",
-    "pacote": "*",
-    "semver": "*",
-    "tar": "*",
-    "temp-suffix": "*",
-    "tsds-lib": "*"
+    "@npmcli/arborist": "^7.5.4",
+    "fs-copy-compat": "^0.1.3",
+    "fs-remove-compat": "^0.2.1",
+    "mkdirp-classic": "^0.5.3",
+    "npm-package-arg": "^13.0.2",
+    "pacote": "^17.0.7",
+    "semver": "^7.7.3",
+    "tar": "^7.5.2",
+    "temp-suffix": "^1.0.8"
   },
   "devDependencies": {
-    "@types/mocha": "*",
-    "@types/node": "*",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.10.1",
     "@types/pacote": "^11.1.8",
-    "@types/semver": "*",
-    "@types/tar": "*",
-    "module-link-unlink": "*",
-    "node-version-use": "*",
-    "os-shim": "*",
-    "queue-cb": "*",
-    "resolve": "*",
-    "short-hash": "*",
-    "ts-dev-stack": "*",
-    "tsds-config": "*",
-    "tsds-lib-test": "*"
+    "@types/semver": "^7.7.1",
+    "@types/tar": "^6.1.13",
+    "module-link-unlink": "^1.0.9",
+    "node-version-use": "^1.9.7",
+    "os-shim": "^0.1.3",
+    "queue-cb": "^1.6.1",
+    "resolve": "^1.22.11",
+    "short-hash": "^1.0.0",
+    "ts-dev-stack": "^1.21.2",
+    "tsds-config": "^0.2.0",
+    "tsds-lib-test": "^1.19.4"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=16.14.0"
   }
 }
