@@ -1,6 +1,6 @@
 {
   "name": "npm-needs-publish",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Smart publish detection for npm packages - semantic package.json comparison with semver-aware dependency analysis",
   "keywords": [
     "npm",
