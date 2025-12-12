@@ -78,7 +78,7 @@
     "resolve": "^1.22.11",
     "short-hash": "^1.0.0",
     "ts-dev-stack": "^1.21.3",
-    "tsds-config": "^0.2.0",
+    "tsds-config": "^0.2.1",
     "tsds-lib-test": "^1.19.4"
   },
   "engines": {
