@@ -31,7 +31,7 @@ function addTests(repo: string) {
     const deps = { ...(modulePackage.dependencies || {}), ...(modulePackage.peerDependencies || {}) };
 
     before((cb) => {
-      installGitRepo(repo, dest, (err): undefined => {
+      installGitRepo(repo, dest, (err): void => {
         if (err) {
           cb(err);
           return;

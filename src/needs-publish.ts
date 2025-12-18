@@ -23,20 +23,18 @@ const _require = typeof require === 'undefined' ? Module.createRequire(import.me
  */
 export type NeedsPublishCallback = (error: Error | null, result?: NeedsPublishResult) => void;
 
-function needsPublishImpl(options: NeedsPublishOptions, callback: NeedsPublishCallback): undefined {
+function needsPublishImpl(options: NeedsPublishOptions, callback: NeedsPublishCallback) {
   const cwd = options.cwd || process.cwd();
 
   // Load local package.json
   const localPkg: PackageJson = options.package || JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
 
   // Skip private packages
-  if (localPkg.private) {
-    callback(null, {
+  if (localPkg.private)
+    return callback(null, {
       needsPublish: false,
       reason: 'Package is private',
     });
-    return;
-  }
 
   (async () => {
     const pacote = _require('pacote');
@@ -106,14 +104,12 @@ function needsPublishImpl(options: NeedsPublishOptions, callback: NeedsPublishCa
 
       // Fetch registry tarball for comparison
       const tarballUrl = registryPkg.dist?.tarball;
-      if (!tarballUrl) {
-        callback(null, {
+      if (!tarballUrl)
+        return callback(null, {
           needsPublish: true,
           reason: 'Registry package has no tarball URL',
           changes: [{ type: 'first-publish', significance: 'critical' }],
         });
-        return;
-      }
 
       registryTarball = await pacote.tarball(tarballUrl, {
         Arborist,
@@ -253,7 +249,7 @@ function needsPublishImpl(options: NeedsPublishOptions, callback: NeedsPublishCa
 /**
  * Callback-based needsPublish
  */
-export function needsPublishCb(options: NeedsPublishOptions, callback: NeedsPublishCallback): void {
+export function needsPublishCb(options: NeedsPublishOptions, callback: NeedsPublishCallback) {
   needsPublishImpl(options, callback);
 }
 
