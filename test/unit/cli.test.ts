@@ -4,45 +4,47 @@
 
 import assert from 'assert';
 import fs from 'fs';
+import isVersion from 'is-version';
 import path from 'path';
+import getLines from '../lib/getLines.ts';
 import { cleanupTempDir, createTempDir, getCliPath, runCommand } from '../lib/test-helpers.ts';
 
 describe('CLI', () => {
   describe('--version', () => {
     it('should output version and exit with code 0', () => {
       const cliPath = getCliPath();
-      const result = runCommand(`node ${cliPath} --version`, process.cwd());
+      const res = runCommand(`node ${cliPath} --version`, process.cwd());
 
-      assert.equal(result.exitCode, 0, 'CLI should exit with code 0');
-      assert.ok(/^\d+\.\d+\.\d+/.test(result.stdout.trim()), 'Should output semver version');
+      assert.equal(res.exitCode, 0, 'CLI should exit with code 0');
+      assert.ok(isVersion(getLines(res.stdout)[0]));
     });
 
     it('should support -V short flag', () => {
       const cliPath = getCliPath();
-      const result = runCommand(`node ${cliPath} -V`, process.cwd());
+      const res = runCommand(`node ${cliPath} -V`, process.cwd());
 
-      assert.equal(result.exitCode, 0, 'CLI should exit with code 0');
-      assert.ok(/^\d+\.\d+\.\d+/.test(result.stdout.trim()), 'Should output semver version');
+      assert.equal(res.exitCode, 0, 'CLI should exit with code 0');
+      assert.ok(isVersion(getLines(res.stdout)[0]));
     });
   });
 
   describe('--help', () => {
     it('should output help and exit with code 0', () => {
       const cliPath = getCliPath();
-      const result = runCommand(`node ${cliPath} --help`, process.cwd());
+      const res = runCommand(`node ${cliPath} --help`, process.cwd());
 
-      assert.equal(result.exitCode, 0, 'CLI should exit with code 0');
-      assert.ok(result.stdout.includes('Usage'), 'Should output usage information');
-      assert.ok(result.stdout.includes('Options'), 'Should output options');
-      assert.ok(result.stdout.includes('npm-needs-publish'), 'Should mention command name');
+      assert.equal(res.exitCode, 0, 'CLI should exit with code 0');
+      assert.ok(res.stdout.includes('Usage'), 'Should output usage information');
+      assert.ok(res.stdout.includes('Options'), 'Should output options');
+      assert.ok(res.stdout.includes('npm-needs-publish'), 'Should mention command name');
     });
 
     it('should support -h short flag', () => {
       const cliPath = getCliPath();
-      const result = runCommand(`node ${cliPath} -h`, process.cwd());
+      const res = runCommand(`node ${cliPath} -h`, process.cwd());
 
-      assert.equal(result.exitCode, 0, 'CLI should exit with code 0');
-      assert.ok(result.stdout.includes('Usage'), 'Should output usage information');
+      assert.equal(res.exitCode, 0, 'CLI should exit with code 0');
+      assert.ok(res.stdout.includes('Usage'), 'Should output usage information');
     });
   });
 
@@ -59,9 +61,9 @@ describe('CLI', () => {
 
     it('should exit with code 2 for missing package.json', () => {
       const cliPath = getCliPath();
-      const result = runCommand(`node ${cliPath} --cwd ${tempDir}`, process.cwd());
+      const res = runCommand(`node ${cliPath} --cwd ${tempDir}`, process.cwd());
 
-      assert.equal(result.exitCode, 2, 'CLI should exit with code 2 for error');
+      assert.equal(res.exitCode, 2, 'CLI should exit with code 2 for error');
     });
 
     it('should exit with code 1 when package needs publishing (new package)', () => {
@@ -74,10 +76,10 @@ describe('CLI', () => {
       };
       fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-      const result = runCommand(`node ${cliPath} --cwd ${tempDir}`, process.cwd());
+      const res = runCommand(`node ${cliPath} --cwd ${tempDir}`, process.cwd());
 
-      assert.equal(result.exitCode, 1, 'CLI should exit with code 1 when publish needed');
-      assert.ok(result.stdout.includes('NEEDS publishing'), 'Should indicate publish needed');
+      assert.equal(res.exitCode, 1, 'CLI should exit with code 1 when publish needed');
+      assert.ok(res.stdout.includes('NEEDS publishing'), 'Should indicate publish needed');
     });
 
     it('should exit with code 0 for private packages (no publish needed)', () => {
@@ -91,10 +93,10 @@ describe('CLI', () => {
       };
       fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-      const result = runCommand(`node ${cliPath} --cwd ${tempDir}`, process.cwd());
+      const res = runCommand(`node ${cliPath} --cwd ${tempDir}`, process.cwd());
 
-      assert.equal(result.exitCode, 0, 'CLI should exit with code 0 for private package');
-      assert.ok(result.stdout.includes('does NOT need publishing'), 'Should indicate no publish needed');
+      assert.equal(res.exitCode, 0, 'CLI should exit with code 0 for private package');
+      assert.ok(res.stdout.includes('does NOT need publishing'), 'Should indicate no publish needed');
     });
   });
 
@@ -120,13 +122,13 @@ describe('CLI', () => {
       };
       fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-      const result = runCommand(`node ${cliPath} --cwd ${tempDir} --json`, process.cwd());
+      const res = runCommand(`node ${cliPath} --cwd ${tempDir} --json`, process.cwd());
 
-      assert.equal(result.exitCode, 0, 'CLI should exit with code 0');
+      assert.equal(res.exitCode, 0, 'CLI should exit with code 0');
 
       let parsed: unknown;
       assert.doesNotThrow(() => {
-        parsed = JSON.parse(result.stdout);
+        parsed = JSON.parse(res.stdout);
       }, 'Output should be valid JSON');
 
       const output = parsed as { needsPublish: boolean; reason: string };
@@ -138,13 +140,13 @@ describe('CLI', () => {
       const cliPath = getCliPath();
 
       // Empty directory = no package.json = error
-      const result = runCommand(`node ${cliPath} --cwd ${tempDir} --json`, process.cwd());
+      const res = runCommand(`node ${cliPath} --cwd ${tempDir} --json`, process.cwd());
 
-      assert.equal(result.exitCode, 2, 'CLI should exit with code 2 for error');
+      assert.equal(res.exitCode, 2, 'CLI should exit with code 2 for error');
 
       let parsed: unknown;
       assert.doesNotThrow(() => {
-        parsed = JSON.parse(result.stdout);
+        parsed = JSON.parse(res.stdout);
       }, 'Error output should be valid JSON');
 
       const output = parsed as { error: boolean; message: string };
@@ -174,10 +176,10 @@ describe('CLI', () => {
       };
       fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-      const result = runCommand(`node ${cliPath} --cwd ${tempDir} --verbose`, process.cwd());
+      const res = runCommand(`node ${cliPath} --cwd ${tempDir} --verbose`, process.cwd());
 
-      assert.equal(result.exitCode, 1, 'CLI should exit with code 1');
-      assert.ok(result.stdout.includes('NEEDS publishing'), 'Should indicate publish needed');
+      assert.equal(res.exitCode, 1, 'CLI should exit with code 1');
+      assert.ok(res.stdout.includes('NEEDS publishing'), 'Should indicate publish needed');
     });
 
     it('should support -v short flag', () => {
@@ -191,9 +193,9 @@ describe('CLI', () => {
       };
       fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-      const result = runCommand(`node ${cliPath} --cwd ${tempDir} -v`, process.cwd());
+      const res = runCommand(`node ${cliPath} --cwd ${tempDir} -v`, process.cwd());
 
-      assert.equal(result.exitCode, 0, 'CLI should exit with code 0');
+      assert.equal(res.exitCode, 0, 'CLI should exit with code 0');
     });
   });
 
@@ -219,10 +221,10 @@ describe('CLI', () => {
       };
       fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-      const result = runCommand(`node ${cliPath} ${tempDir}`, process.cwd());
+      const res = runCommand(`node ${cliPath} ${tempDir}`, process.cwd());
 
-      assert.equal(result.exitCode, 0, 'CLI should exit with code 0');
-      assert.ok(result.stdout.includes('does NOT need publishing'), 'Should indicate no publish needed');
+      assert.equal(res.exitCode, 0, 'CLI should exit with code 0');
+      assert.ok(res.stdout.includes('does NOT need publishing'), 'Should indicate no publish needed');
     });
   });
 });
