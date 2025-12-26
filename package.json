@@ -71,6 +71,8 @@
     "@types/pacote": "^11.1.8",
     "@types/semver": "^7.7.1",
     "@types/tar": "^6.1.13",
+    "cr": "^0.1.0",
+    "is-version": "^1.0.9",
     "module-link-unlink": "^1.0.11",
     "node-version-use": "*",
     "os-shim": "^0.1.0",
