@@ -267,11 +267,5 @@ export function needsPublishCb(options: NeedsPublishOptions, callback: NeedsPubl
  * ```
  */
 export function needsPublish(options: NeedsPublishOptions = {}): Promise<NeedsPublishResult> {
-  return new Promise((resolve, reject) => {
-    needsPublishCb(options, (error, result) => {
-      if (error) reject(error);
-      else if (result) resolve(result);
-      else reject(new Error('No result returned'));
-    });
-  });
+  return new Promise((resolve, reject) => needsPublishCb(options, (err, result) => (err ? reject(err) : resolve(result))));
 }
