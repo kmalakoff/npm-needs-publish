@@ -24,19 +24,16 @@ const _require = typeof require === 'undefined' ? Module.createRequire(import.me
 
 // Lazy load dependencies
 let _semver: typeof import('semver') | null = null;
-let _npa: typeof import('npm-package-arg') | null = null;
-
 function getSemver(): typeof import('semver') {
-  if (!_semver) {
-    _semver = _require('semver');
-  }
+  if (!_semver) _semver = _require('semver');
+  if (!_semver) throw new Error('Failed to load semver module');
   return _semver;
 }
 
+let _npa: typeof import('npm-package-arg') | null = null;
 function getNpa(): typeof import('npm-package-arg') {
-  if (!_npa) {
-    _npa = _require('npm-package-arg');
-  }
+  if (!_npa) _npa = _require('npm-package-arg');
+  if (!_npa) throw new Error('Failed to load npm-package-arg module');
   return _npa;
 }
 

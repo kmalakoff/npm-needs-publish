@@ -267,5 +267,5 @@ export function needsPublishCb(options: NeedsPublishOptions, callback: NeedsPubl
  * ```
  */
 export function needsPublish(options: NeedsPublishOptions = {}): Promise<NeedsPublishResult> {
-  return new Promise((resolve, reject) => needsPublishCb(options, (err, result) => (err ? reject(err) : resolve(result))));
+  return new Promise((resolve, reject) => needsPublishCb(options, (err, result) => (err || !result ? reject(err ?? new Error('Unknown error')) : resolve(result))));
 }
