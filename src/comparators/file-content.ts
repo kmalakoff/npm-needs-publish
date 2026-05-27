@@ -8,26 +8,14 @@
  */
 
 import crypto from 'crypto';
-import Module from 'module';
 import { pipeline as pipelineCb, Readable } from 'stream';
+import * as tar from 'tar';
 import { promisify } from 'util';
 import zlib from 'zlib';
 
 const pipeline = promisify(pipelineCb);
 
 import type { FileChange, FileComparison } from '../types.ts';
-
-const _require = typeof require === 'undefined' ? Module.createRequire(import.meta.url) : require;
-
-// Lazy load tar
-let _tar: typeof import('tar') | null = null;
-
-function getTar(): typeof import('tar') {
-  if (!_tar) {
-    _tar = _require('tar');
-  }
-  return _tar;
-}
 
 /**
  * Compare package files from two tarballs
@@ -105,7 +93,6 @@ export async function comparePackageFiles(localTarball: Buffer, registryTarball:
  */
 async function extractTarball(tarball: Buffer): Promise<Record<string, Buffer>> {
   const files: Record<string, Buffer> = {};
-  const tar = getTar();
 
   // Create a parser that collects file contents
   const parser = new tar.Parser({
