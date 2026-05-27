@@ -59,7 +59,7 @@
     "fs-copy-compat": "^1.0.0",
     "fs-remove-compat": "^1.0.0",
     "mkdirp-classic": "^0.5.2",
-    "npm-package-arg": "^14.0.0",
+    "npm-package-arg": "^12.0.0",
     "pacote": "^17.0.7",
     "semver": "^7.7.3",
     "tar": "^7.5.2",
