@@ -1,16 +1,38 @@
-/**
- * Compatibility Layer for Node.js 0.12+
- * Local to this package - contains only needed functions.
- */
+// Feature-detected fallbacks for APIs missing on the oldest supported Node.
 
-/**
- * String.prototype.startsWith wrapper for Node.js 0.12+
- * - Uses native startsWith on Node 4.0+ / ES2015+
- * - Falls back to indexOf on Node 0.12-3.x
- */
-const hasStartsWith = typeof String.prototype.startsWith === 'function';
-export function stringStartsWith(str: string, search: string, position?: number): boolean {
-  if (hasStartsWith) return str.startsWith(search, position);
-  position = position || 0;
-  return str.indexOf(search, position) === position;
+import urlModule from 'url';
+
+export interface ParsedUrl {
+  protocol: string | null;
+  hostname: string | null;
+  port: string | null;
+  path: string | null;
+}
+
+// WHATWG URL is global from Node 10; below that only url.parse exists, above it
+// url.parse emits DEP0169.
+const hasWhatwgUrl = typeof URL === 'function';
+
+export function parseUrl(target: string): ParsedUrl {
+  if (hasWhatwgUrl) {
+    const parsed = new URL(target);
+    return {
+      protocol: parsed.protocol,
+      hostname: parsed.hostname,
+      port: parsed.port || null,
+      path: `${parsed.pathname}${parsed.search}`,
+    };
+  }
+  const parsed = urlModule.parse(target);
+  return {
+    protocol: parsed.protocol || null,
+    hostname: parsed.hostname || null,
+    port: parsed.port || null,
+    path: parsed.path || null,
+  };
+}
+
+export function resolveUrl(base: string, target: string): string {
+  if (hasWhatwgUrl) return new URL(target, base).href;
+  return urlModule.resolve(base, target);
 }
