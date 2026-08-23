@@ -95,12 +95,6 @@ export interface NeedsPublishOptions {
   packageJsonOnly?: boolean;
 
   /**
-   * Logging level
-   * @default 'silent'
-   */
-  logLevel?: 'silent' | 'warn' | 'info' | 'debug';
-
-  /**
    * Treat narrowed dependency ranges as equivalent (no publish needed).
    * When true: `*` → `^4.17.0` is considered equivalent (optimistic)
    * When false: `*` → `^4.17.0` triggers publish (conservative)
@@ -287,8 +281,3 @@ export interface CompareOptions {
   /** Treat narrowed ranges as equivalent @default true */
   treatNarrowingAsEquivalent?: boolean;
 }
-
-/**
- * Logger interface
- */
-export type Logger = Pick<Console, 'log' | 'warn' | 'error'>;

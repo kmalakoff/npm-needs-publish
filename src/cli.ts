@@ -11,18 +11,23 @@
  *   2 - Error occurred
  */
 
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
-import { parseArgs } from 'util';
+import exit from 'exit-compat';
+import fs from 'fs';
+import getopts from 'getopts-compat';
+import path from 'path';
+import url from 'url';
 import { needsPublish } from './needs-publish.ts';
 import type { NeedsPublishOptions, NeedsPublishResult } from './types.ts';
 
-const __dirname = dirname(typeof __filename !== 'undefined' ? __filename : fileURLToPath(import.meta.url));
+const NO_PUBLISH_CODE = 0;
+const NEEDS_PUBLISH_CODE = 1;
+const ERROR_CODE = 2;
+
+const __dirname = path.dirname(typeof __filename !== 'undefined' ? __filename : url.fileURLToPath(import.meta.url));
 
 function getVersion(): string {
-  const packagePath = join(__dirname, '..', '..', 'package.json');
-  const packageJson = JSON.parse(readFileSync(packagePath, 'utf8'));
+  const packagePath = path.join(__dirname, '..', '..', 'package.json');
+  const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
   return packageJson.version;
 }
 
@@ -101,79 +106,44 @@ function formatResult(result: NeedsPublishResult, verbose: boolean): string {
 }
 
 export default async function cli(argv: string[]): Promise<void> {
-  const { values, positionals } = parseArgs({
-    args: argv,
-    options: {
-      help: {
-        type: 'boolean',
-        short: 'h',
-        default: false,
-      },
-      version: {
-        type: 'boolean',
-        short: 'V',
-        default: false,
-      },
-      cwd: {
-        type: 'string',
-        default: process.cwd(),
-      },
-      registry: {
-        type: 'string',
-      },
-      json: {
-        type: 'boolean',
-        default: false,
-      },
-      verbose: {
-        type: 'boolean',
-        short: 'v',
-        default: false,
-      },
-      'package-json-only': {
-        type: 'boolean',
-        default: false,
-      },
-      'no-optional-deps': {
-        type: 'boolean',
-        default: false,
-      },
-    },
-    allowPositionals: true,
+  const options = getopts(argv, {
+    alias: { help: 'h', version: 'V', verbose: 'v' },
+    boolean: ['help', 'version', 'json', 'verbose', 'package-json-only', 'optional-deps'],
+    default: { 'optional-deps': true },
   });
 
-  if (values.version) {
+  if (options.version) {
     console.log(getVersion());
-    process.exit(0);
+    return exit(NO_PUBLISH_CODE);
   }
 
-  if (values.help) {
+  if (options.help) {
     showHelp();
-    process.exit(0);
+    return exit(NO_PUBLISH_CODE);
   }
 
-  // Use positional argument as cwd if provided
-  const cwd = positionals[0] || values.cwd || process.cwd();
+  // Positional argument wins over --cwd
+  const cwd = options._[0] || options.cwd || process.cwd();
 
   try {
-    const options: NeedsPublishOptions = {
-      cwd,
-      registry: values.registry,
-      packageJsonOnly: values['package-json-only'],
-      includeOptionalDeps: !values['no-optional-deps'],
+    const needsPublishOptions: NeedsPublishOptions = {
+      cwd: String(cwd),
+      registry: options.registry ? String(options.registry) : undefined,
+      packageJsonOnly: !!options['package-json-only'],
+      includeOptionalDeps: options['optional-deps'] !== false,
     };
 
-    const result = await needsPublish(options);
+    const result = await needsPublish(needsPublishOptions);
 
-    if (values.json) {
+    if (options.json) {
       console.log(JSON.stringify(result, null, 2));
     } else {
-      console.log(formatResult(result, values.verbose || false));
+      console.log(formatResult(result, !!options.verbose));
     }
 
-    process.exit(result.needsPublish ? 1 : 0);
+    exit(result.needsPublish ? NEEDS_PUBLISH_CODE : NO_PUBLISH_CODE);
   } catch (error) {
-    if (values.json) {
+    if (options.json) {
       console.log(
         JSON.stringify(
           {
@@ -187,6 +157,6 @@ export default async function cli(argv: string[]): Promise<void> {
     } else {
       console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
-    process.exit(2);
+    exit(ERROR_CODE);
   }
 }

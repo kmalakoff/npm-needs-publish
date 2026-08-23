@@ -19,6 +19,10 @@ Traditional publish detection methods have limitations:
 3. **Dependency type awareness** - Only `dependencies` and `peerDependencies` affect consumers
 4. **File-level comparison** - Detects actual code changes, not just metadata
 
+## Requirements
+
+Node >= 6, and the `npm` CLI on `PATH` (used to pack the local package).
+
 ## Installation
 
 ```bash
@@ -99,7 +103,7 @@ interface NeedsPublishResult {
 
 1. **Fetch registry packument** → if E404, return `needsPublish=true` (first publish)
 2. **Version check** → if different, return `needsPublish=true` (intentional bump)
-3. **Fast hash check** → if identical, return `needsPublish=false` (no changes)
+3. **Fast byte check** → if the tarballs are identical, return `needsPublish=false` (no changes)
 4. **Extract both tarballs, compare file-by-file** (excluding package.json)
 5. **If non-package.json files differ** → return `needsPublish=true`
 6. **If only package.json differs** → do semantic comparison:

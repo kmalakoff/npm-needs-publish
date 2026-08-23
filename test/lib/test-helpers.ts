@@ -6,7 +6,7 @@ import { execSync } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
 import url from 'url';
-import { cpSync, mkdirpSync, mkdtempSync, rimrafSync } from '../../src/fs-compat.ts';
+import { cpSync, mkdirpSync, mkdtempSync, rimrafSync } from './fs-compat.ts';
 
 const __dirname1 = path.dirname(typeof __filename !== 'undefined' ? __filename : url.fileURLToPath(import.meta.url));
 
