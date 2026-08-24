@@ -79,7 +79,7 @@
     "temp-suffix": "^1.0.10",
     "ts-dev-stack": "*",
     "tsds-config": "*",
-    "tsds-lib-test": "^1.19.7"
+    "tsds-lib-test": "^1.21.4"
   },
   "engines": {
     "node": ">=6"
