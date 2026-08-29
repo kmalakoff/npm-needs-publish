@@ -16,7 +16,6 @@ import fs from 'fs';
 import getopts from 'getopts-compat';
 import path from 'path';
 import url from 'url';
-import { needsPublish } from './needs-publish.ts';
 import type { NeedsPublishOptions, NeedsPublishResult } from './types.ts';
 
 const NO_PUBLISH_CODE = 0;
@@ -133,7 +132,13 @@ export default async function cli(argv: string[]): Promise<void> {
       includeOptionalDeps: options['optional-deps'] !== false,
     };
 
-    const result = await needsPublish(needsPublishOptions);
+    // deferred: needs-publish.ts pulls the registry/pack/compare pipeline (cross-spawn-cb, tar-stream,
+    // npm-package-arg). require() cannot load this ESM sibling below Node 20.19 (require(esm)), so
+    // the ESM half needs a real dynamic import; the CJS half's sibling is genuine CommonJS, so a
+    // plain synchronous require is used there instead.
+    const needsPublishModule = typeof require === 'undefined' ? await import('./needs-publish.js') : require('./needs-publish.js');
+    const { needsPublish } = needsPublishModule;
+    const result = (await needsPublish(needsPublishOptions)) as NeedsPublishResult;
 
     if (options.json) {
       console.log(JSON.stringify(result, null, 2));
