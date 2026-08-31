@@ -38,8 +38,8 @@ npm-needs-publish
 # Check with JSON output
 npm-needs-publish --json
 
-# Check specific directory with verbose output
-npm-needs-publish --cwd ./packages/my-package --verbose
+# Check specific directory with a detailed change breakdown
+npm-needs-publish --cwd ./packages/my-package --trace
 ```
 
 ### Options
@@ -49,7 +49,7 @@ npm-needs-publish --cwd ./packages/my-package --verbose
 | `--cwd <path>` | Working directory (default: current directory) |
 | `--registry <url>` | Registry URL override |
 | `--json` | Output result as JSON |
-| `--verbose, -v` | Show detailed change breakdown |
+| `--trace, -t` | Show detailed change breakdown |
 | `--package-json-only` | Only compare package.json, skip file comparison |
 | `--no-optional-deps` | Exclude optionalDependencies from comparison |
 

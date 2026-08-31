@@ -19,9 +19,9 @@ describe('CLI', () => {
       assert.ok(isVersion(getLines(res.stdout)[0]));
     });
 
-    it('should support -V short flag', () => {
+    it('should support -v short flag', () => {
       const cliPath = getCliPath();
-      const res = runCommand(`node ${cliPath} -V`, process.cwd());
+      const res = runCommand(`node ${cliPath} -v`, process.cwd());
 
       assert.equal(res.exitCode, 0, 'CLI should exit with code 0');
       assert.ok(isVersion(getLines(res.stdout)[0]));
@@ -155,45 +155,45 @@ describe('CLI', () => {
     });
   });
 
-  describe('--verbose output', () => {
+  describe('--trace output', () => {
     let tempDir: string;
 
     beforeEach(() => {
-      tempDir = createTempDir('cli-verbose-');
+      tempDir = createTempDir('cli-trace-');
     });
 
     afterEach(() => {
       cleanupTempDir(tempDir);
     });
 
-    it('should show detailed output with --verbose flag', () => {
+    it('should show detailed output with --trace flag', () => {
       const cliPath = getCliPath();
 
       // Create a package.json for a non-existent package
       const packageJson = {
-        name: `@test-npm-needs-publish/verbose-test-${Date.now()}`,
+        name: `@test-npm-needs-publish/trace-test-${Date.now()}`,
         version: '1.0.0',
       };
       fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-      const res = runCommand(`node ${cliPath} --cwd ${tempDir} --verbose`, process.cwd());
+      const res = runCommand(`node ${cliPath} --cwd ${tempDir} --trace`, process.cwd());
 
       assert.equal(res.exitCode, 1, 'CLI should exit with code 1');
       assert.ok(res.stdout.includes('NEEDS publishing'), 'Should indicate publish needed');
     });
 
-    it('should support -v short flag', () => {
+    it('should support -t short flag', () => {
       const cliPath = getCliPath();
 
       // Create a private package.json
       const packageJson = {
-        name: 'test-verbose-short',
+        name: 'test-trace-short',
         version: '1.0.0',
         private: true,
       };
       fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 
-      const res = runCommand(`node ${cliPath} --cwd ${tempDir} -v`, process.cwd());
+      const res = runCommand(`node ${cliPath} --cwd ${tempDir} -t`, process.cwd());
 
       assert.equal(res.exitCode, 0, 'CLI should exit with code 0');
     });
