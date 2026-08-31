@@ -42,11 +42,11 @@ of package.json fields and content changes.
 
 Options:
   --help, -h             Show this help message
-  --version, -V          Show version number
+  --version, -v          Show version number
   --cwd <path>           Working directory (default: current directory)
   --registry <url>       Registry URL override
   --json                 Output result as JSON
-  --verbose, -v          Show detailed change breakdown
+  --trace, -t            Show detailed change breakdown
   --package-json-only    Only compare package.json, skip file comparison
   --no-optional-deps     Exclude optionalDependencies from comparison
 
@@ -62,15 +62,15 @@ Examples:
   # Check with JSON output
   npm-needs-publish --json
 
-  # Check specific directory with verbose output
-  npm-needs-publish --cwd ./packages/my-package --verbose
+  # Check specific directory with a detailed change breakdown
+  npm-needs-publish --cwd ./packages/my-package --trace
 
   # Skip optionalDependencies comparison
   npm-needs-publish --no-optional-deps
 `);
 }
 
-function formatResult(result: NeedsPublishResult, verbose: boolean): string {
+function formatResult(result: NeedsPublishResult, trace: boolean): string {
   const lines: string[] = [];
 
   if (result.needsPublish) {
@@ -81,7 +81,7 @@ function formatResult(result: NeedsPublishResult, verbose: boolean): string {
     lines.push(`  Reason: ${result.reason}`);
   }
 
-  if (verbose && result.changes && result.changes.length > 0) {
+  if (trace && result.changes && result.changes.length > 0) {
     lines.push('');
     lines.push('Changes detected:');
     for (const change of result.changes) {
@@ -106,8 +106,8 @@ function formatResult(result: NeedsPublishResult, verbose: boolean): string {
 
 export default async function cli(argv: string[]): Promise<void> {
   const options = getopts(argv, {
-    alias: { help: 'h', version: 'V', verbose: 'v' },
-    boolean: ['help', 'version', 'json', 'verbose', 'package-json-only', 'optional-deps'],
+    alias: { help: 'h', version: 'v', trace: 't' },
+    boolean: ['help', 'version', 'json', 'trace', 'package-json-only', 'optional-deps'],
     default: { 'optional-deps': true },
   });
 
@@ -143,7 +143,7 @@ export default async function cli(argv: string[]): Promise<void> {
     if (options.json) {
       console.log(JSON.stringify(result, null, 2));
     } else {
-      console.log(formatResult(result, !!options.verbose));
+      console.log(formatResult(result, !!options.trace));
     }
 
     exit(result.needsPublish ? NEEDS_PUBLISH_CODE : NO_PUBLISH_CODE);

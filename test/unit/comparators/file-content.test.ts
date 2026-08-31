@@ -2,15 +2,20 @@ import assert from 'assert';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import { extractPackageJson } from 'npm-needs-publish';
-import os from 'os';
 import path from 'path';
-import { mkdtempSync, rimrafSync } from '../lib/fs-compat.ts';
+import url from 'url';
+import { mkdirpSync, mkdtempSync, rimrafSync } from '../../lib/fs-compat.ts';
+
+const __dirname = path.dirname(typeof __filename !== 'undefined' ? __filename : url.fileURLToPath(import.meta.url));
+const pkgRoot = fs.realpathSync(path.join(__dirname, '..', '..'));
+const tmpRoot = path.join(pkgRoot, '.tmp');
+mkdirpSync(tmpRoot);
 
 describe('file-content', () => {
   describe('extractPackageJson', () => {
     it('should extract package.json from a tarball', async () => {
       // Create a temp directory with a minimal package
-      const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'npm-needs-publish-test-'));
+      const tmpDir = mkdtempSync(path.join(tmpRoot, 'npm-needs-publish-test-'));
       const pkgJson = {
         name: 'test-pkg',
         version: '1.0.0',
@@ -44,7 +49,7 @@ describe('file-content', () => {
     it('should preserve all package.json fields including files', async () => {
       // This test verifies the fix for comparing tarball package.json
       // instead of packument (which is missing fields like 'files')
-      const tmpDir = mkdtempSync(path.join(os.tmpdir(), 'npm-needs-publish-test-'));
+      const tmpDir = mkdtempSync(path.join(tmpRoot, 'npm-needs-publish-test-'));
       const pkgJson = {
         name: 'test-pkg-fields',
         version: '1.0.0',

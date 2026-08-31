@@ -6,14 +6,11 @@ const __dirname = path.dirname(typeof __filename !== 'undefined' ? __filename : 
 import assert from 'assert';
 import fs from 'fs';
 import { linkModule, unlinkModule } from 'module-link-unlink';
-import os from 'os';
-import osShim from 'os-shim';
 import Queue from 'queue-cb';
 import * as resolve from 'resolve';
 import shortHash from 'short-hash';
 import { installGitRepo } from 'tsds-lib-test';
 
-const tmpdir = os.tmpdir || osShim.tmpdir;
 const resolveSync = (resolve.default ?? resolve).sync;
 
 import { needsPublish } from 'npm-needs-publish';
@@ -24,8 +21,8 @@ function addTests(repo: string) {
   const repoName = path.basename(repo, path.extname(repo));
 
   describe(repoName, () => {
-    const dest = path.join(tmpdir(), 'npm-needs-publish', shortHash(process.cwd()), repoName);
     const modulePath = fs.realpathSync(path.join(__dirname, '..', '..'));
+    const dest = path.join(modulePath, '.tmp', 'cache', shortHash(process.cwd()), repoName);
     const modulePackage = JSON.parse(fs.readFileSync(path.join(modulePath, 'package.json'), 'utf8'));
     const nodeModules = path.join(dest, 'node_modules');
     const deps = { ...(modulePackage.dependencies || {}), ...(modulePackage.peerDependencies || {}) };
