@@ -30,9 +30,6 @@ dev-debug.log
 .env.*.local
 **/.env.local
 **/.env.*.local
-.audit/
-.plans/
-data/
 .archive/
 
 # Editor directories and files
@@ -42,14 +39,6 @@ data/
 # Agent files
 .agents/
 .claude/
-.taskmaster/
-.mcp.json
-!test/**/.mcp.json
-.mcp.*.json
-.mcp-z/
-.mcpeasy/
-.tokens/
-*.agents.json
 
 # Backup files
 *.bak
