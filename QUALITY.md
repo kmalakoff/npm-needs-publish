@@ -56,7 +56,6 @@ AI agents commonly misinterpret:
 - "Testing standards" ≠ "Testing frameworks"
 - "Type definitions" ≠ "Class definitions"
 
-
 # DETAILED QUALITY RULES
 
 ## UNIVERSAL RULES (Apply to all code)
@@ -2105,13 +2104,10 @@ test('gmail operations', async () => {
 
 ### Example 3: Proper Configuration Validation
 ```typescript
-// ✅ COMPLIANT: Test validates required configuration exists
-function requiredEnv(key: string): string {
-  if (!process.env[key]) {
-    throw new Error(`Environment variable ${key} is required for this test`);
-  }
-  return process.env[key];
-}
+// ✅ COMPLIANT: Test validates required configuration with the shared helper
+import { requiredEnv } from 'portable-env';
+
+const clientId = requiredEnv('GMAIL_CLIENT_ID'); // Throws naming the missing or empty key
 ```
 
 ## Generalization Guidance

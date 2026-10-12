@@ -1,83 +1,56 @@
-import path from 'path';
-import url from 'url';
-
-const __dirname = path.dirname(typeof __filename !== 'undefined' ? __filename : url.fileURLToPath(import.meta.url));
-
+// Live integration tests require access to the configured npm registry.
 import assert from 'assert';
+import spawn from 'cross-spawn-cb';
 import fs from 'fs';
-import { linkModule, unlinkModule } from 'module-link-unlink';
-import Queue from 'queue-cb';
-import * as resolve from 'resolve';
-import shortHash from 'short-hash';
-import { installGitRepo } from 'tsds-lib-test';
-
-const resolveSync = (resolve.default ?? resolve).sync;
-
 import { needsPublish } from 'npm-needs-publish';
+import path from 'path';
+import semver from 'semver';
+import { cleanupTempDir, createTempDir } from '../lib/test-helpers.ts';
 
-const GITS = ['https://github.com/kmalakoff/parser-multipart.git'];
+const PACKAGES = ['parser-multipart'];
 
-function addTests(repo: string) {
-  const repoName = path.basename(repo, path.extname(repo));
-
-  describe(repoName, () => {
-    const modulePath = fs.realpathSync(path.join(__dirname, '..', '..'));
-    const dest = path.join(modulePath, '.tmp', 'cache', shortHash(process.cwd()), repoName);
-    const modulePackage = JSON.parse(fs.readFileSync(path.join(modulePath, 'package.json'), 'utf8'));
-    const nodeModules = path.join(dest, 'node_modules');
-    const deps = { ...(modulePackage.dependencies || {}), ...(modulePackage.peerDependencies || {}) };
-
-    before((cb) => {
-      installGitRepo(repo, dest, (err): void => {
-        if (err) {
-          cb(err);
-          return;
-        }
-
-        const queue = new Queue();
-        queue.defer((cb) => linkModule(modulePath, nodeModules, (err) => cb(err)));
-        for (const dep in deps) queue.defer((cb) => linkModule(path.dirname(resolveSync(`${dep}/package.json`)), nodeModules, (err) => cb(err)));
-        queue.await(cb);
-      });
-    });
-
-    after((cb) => {
-      const queue = new Queue();
-      queue.defer((cb) => unlinkModule(modulePath, nodeModules, (err) => cb(err)));
-      for (const dep in deps) queue.defer((cb) => unlinkModule(path.dirname(resolveSync(`${dep}/package.json`)), nodeModules, (err) => cb(err)));
-      queue.await(cb);
-    });
-
-    // State restoration
+function addTests(packageName: string) {
+  describe(packageName, () => {
+    let tempDir: string;
+    let dest: string;
     let originalPackageJson: string;
-    let originalSrcFile: string | undefined;
+    let contentPath: string;
+    let originalContent: string;
 
-    beforeEach(() => {
+    before(async () => {
+      tempDir = createTempDir('needs-publish-integration-');
+      fs.writeFileSync(path.join(tempDir, 'package.json'), JSON.stringify({ name: 'needs-publish-integration', version: '1.0.0', private: true }));
+      const env = { ...process.env };
+      delete env.npm_config_allow_scripts;
+      await new Promise<void>((resolve, reject) => {
+        spawn('npm', ['install', '--ignore-scripts', '--no-save', '--no-package-lock', '--no-audit', '--no-fund', `${packageName}@latest`], { cwd: tempDir, env, encoding: 'utf8' }, (err) => (err ? reject(err) : resolve()));
+      });
+      dest = path.join(tempDir, 'node_modules', packageName);
       originalPackageJson = fs.readFileSync(path.join(dest, 'package.json'), 'utf8');
-      const srcPath = path.join(dest, 'src', 'index.js');
-      if (fs.existsSync(srcPath)) {
-        originalSrcFile = fs.readFileSync(srcPath, 'utf8');
-      }
+      const pkg = JSON.parse(originalPackageJson);
+      contentPath = path.join(dest, pkg.main);
+      originalContent = fs.readFileSync(contentPath, 'utf8');
+    });
+
+    after(() => {
+      if (tempDir) cleanupTempDir(tempDir);
     });
 
     afterEach(() => {
       fs.writeFileSync(path.join(dest, 'package.json'), originalPackageJson);
-      if (originalSrcFile) {
-        const srcPath = path.join(dest, 'src', 'index.js');
-        fs.writeFileSync(srcPath, originalSrcFile);
-      }
+      fs.writeFileSync(contentPath, originalContent);
     });
 
     describe('Version comparison', () => {
       it('should need publish when local version newer than registry', async () => {
         const pkg = JSON.parse(fs.readFileSync(path.join(dest, 'package.json'), 'utf8'));
-        pkg.version = '99.99.99';
+        pkg.version = semver.inc(pkg.version, 'major');
         fs.writeFileSync(path.join(dest, 'package.json'), `${JSON.stringify(pkg, null, 2)}\n`);
 
         const result = await needsPublish({ cwd: dest });
         assert.equal(result.needsPublish, true);
         assert.ok(result.reason.indexOf('Version differs') >= 0);
-        assert.ok(result.reason.indexOf('99.99.99') >= 0);
+        assert.ok(result.reason.indexOf(pkg.version) >= 0);
       });
 
       it('should need publish when local version older than registry', async () => {
@@ -93,28 +66,26 @@ function addTests(repo: string) {
 
       it('should proceed to integrity check when versions match', async () => {
         const result = await needsPublish({ cwd: dest });
-        assert.ok(result.reason.indexOf('Version differs') < 0);
+        assert.equal(result.needsPublish, false, result.reason);
       });
     });
 
     describe('Integrity comparison', () => {
       it('should check hash when versions match', async () => {
         const result = await needsPublish({ cwd: dest });
-        // Note: parser-multipart git clone may have changes not in registry
-        if (result.needsPublish) {
-          assert.ok(result.reason.indexOf('Code changes detected') >= 0 || result.reason.indexOf('Version differs') >= 0);
-        } else {
-          assert.ok(result.reason.indexOf('No changes detected') >= 0 || result.reason.indexOf('identical') >= 0);
-        }
+        assert.equal(result.needsPublish, false, result.reason);
+        assert.ok(result.reason.indexOf('No changes detected') >= 0 || result.reason.indexOf('identical') >= 0, result.reason);
       });
 
       it('should need publish when versions match but content differs', async () => {
-        const srcPath = path.join(dest, 'src', 'index.js');
-        fs.appendFileSync(srcPath, '\n// Test modification to trigger hash difference\n');
+        fs.appendFileSync(contentPath, '\n// Test modification to trigger hash difference\n');
 
         const result = await needsPublish({ cwd: dest });
         assert.equal(result.needsPublish, true);
-        assert.ok(result.reason.indexOf('Code changes detected') >= 0 || result.reason.indexOf('changes') >= 0);
+        assert.ok(
+          result.changes?.some((change) => change.type === 'file' && change.field === `package/${path.relative(dest, contentPath).split(path.sep).join('/')}`),
+          result.reason
+        );
       });
     });
 
@@ -145,7 +116,7 @@ function addTests(repo: string) {
 }
 
 describe('needsPublish integration', () => {
-  for (let i = 0; i < GITS.length; i++) {
-    addTests(GITS[i]);
+  for (let i = 0; i < PACKAGES.length; i++) {
+    addTests(PACKAGES[i]);
   }
 });
